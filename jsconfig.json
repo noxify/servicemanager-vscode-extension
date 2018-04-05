@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es2017",
+        "checkJs": true,  /* Typecheck .js files. */
+        "lib": [ 
+            "es7"
+        ]
+    },
+    "exclude": [
+        "node_modules"
+    ]
+}

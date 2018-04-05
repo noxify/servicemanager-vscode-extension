@@ -1,0 +1,102 @@
+{
+    "name": "service-manager-vscode",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/noxify/service-manager-vscode"
+    },
+    "displayName": "Service Manager VSCode",
+    "description": "Push/Pull/Compile Service Manager ScriptLibraries from your editor",
+    "version": "0.0.1",
+    "publisher": "noxify",
+    "engines": {
+        "vscode": "^1.21.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "onCommand:extension.servicemanager.getLibraries",
+        "onCommand:extension.servicemanager.pullLibrary",
+        "onCommand:extension.servicemanager.pushLibrary",
+        "onCommand:extension.servicemanager.compileLibrary"
+    ],
+    "main": "./extension",
+    "contributes": {
+        "configuration": [
+            {
+                "title": "Service Manager",
+                "properties": {
+                }
+            }
+        ],
+        "commands": [
+            {
+                "command": "extension.servicemanager.getLibraries",
+                "title": "Show available ScriptLibraries...",
+                "category": "Service Manager"
+            },
+            {
+                "command": "extension.servicemanager.pullLibrary",
+                "title": "Pull ScriptLibrary from...",
+                "category": "Service Manager"
+            },
+            {
+                "command": "extension.servicemanager.pushLibrary",
+                "title": "Push ScriptLibrary to...",
+                "category": "Service Manager"
+            },
+            {
+                "command": "extension.servicemanager.compileLibrary",
+                "title": "Compile ScriptLibrary in...",
+                "category": "Service Manager"
+            }
+        ],
+        "menus": {
+            "editor/title/context": [
+                {
+                    "command": "extension.servicemanager.pushLibrary",
+                    "when": "resourceLangId == javascript"
+                },
+                {
+                    "command": "extension.servicemanager.pullLibrary",
+                    "when": "resourceLangId == javascript"
+                },
+                {
+                    "command": "extension.servicemanager.compileLibrary",
+                    "when": "resourceLangId == javascript"
+                }
+            ],
+            "editor/title": [
+                {
+                    "command": "extension.servicemanager.pushLibrary",
+                    "when": "resourceLangId == javascript"
+                },
+                {
+                    "command": "extension.servicemanager.pullLibrary",
+                    "when": "resourceLangId == javascript"
+                },
+                {
+                    "command": "extension.servicemanager.compileLibrary",
+                    "when": "resourceLangId == javascript"
+                }
+            ]
+        }
+        
+    },
+    "scripts": {
+        "postinstall": "node ./node_modules/vscode/bin/install",
+        "test": "node ./node_modules/vscode/bin/test"
+    },
+    "devDependencies": {
+        "typescript": "^2.6.1",
+        "vscode": "^1.1.6",
+        "eslint": "^4.11.0",
+        "@types/node": "^7.0.43",
+        "@types/mocha": "^2.2.42"
+    },
+    "dependencies": {
+        "lodash": "^4.17.5",
+        "superagent": "^3.8.2"
+    }
+}
