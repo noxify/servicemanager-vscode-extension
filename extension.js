@@ -4,6 +4,11 @@ const path = require('path');
 const vscode = require('vscode');
 const request = require('superagent');
 
+/**
+ * Activate the extension
+ * 
+ * @param {any} context 
+ */
 function activate(context) {
 
     let availableEnvironments = getEnvironments();
@@ -61,7 +66,7 @@ function activate(context) {
             vscode.window
                 .showQuickPick(availableEnvironments)
                 .then(
-                    env => loadLibrary(env, currentFile),
+                    env => compileFile(env, currentFile),
                     errorHandler
                 );
         } else {
@@ -77,13 +82,20 @@ function activate(context) {
   
 }
 
-// this method is called when your extension is deactivated
+/**
+ * Deactivate the extension
+ */
 function deactivate() {
 }
 
+/**
+ * Gets the available environments as QuickList object
+ * 
+ * @returns array
+ */
 function getEnvironments() {
 
-    let config = getConfig();
+    let config = getConfig(null);
     var items = [];
 
     _.each(config, function(env, key) {
@@ -97,11 +109,24 @@ function getEnvironments() {
     return items;
 }
 
+/**
+ * Gets all or the defined configuration from the settings
+ * 
+ * @param {string|null} env 
+ * @returns object
+ */
 function getConfig(env) { 
     let config = vscode.workspace.getConfiguration('servicemanager');
     return (env) ? config['environments'][env] : config['environments'];
 }
 
+/**
+ * Gets all available ScriptLibraries from the
+ * selected envrionment
+ * 
+ * @param {object} env 
+ * @returns {Promise}
+ */
 async function getScriptLibraries(env) {
     
     if(!env) {
@@ -121,6 +146,13 @@ async function getScriptLibraries(env) {
     }
 }
 
+/**
+ * Get the ScriptLibrary from the selected environment
+ * 
+ * @param {object} env 
+ * @param {string} selectedLibrary 
+ * @returns {Promise}
+ */
 async function getScriptLibrary(env, selectedLibrary) {
 
     if( !env || !selectedLibrary) {
@@ -135,12 +167,50 @@ async function getScriptLibrary(env, selectedLibrary) {
     }
 }
 
+/**
+ * Compile the ScriptLibrary in the selected environment
+ * 
+ * @param {object} env 
+ * @param {string} selectedLibrary 
+ * @returns {Promise}
+ */
+async function compileScriptLibrary(env, selectedLibrary) {
+
+    if (!env || !selectedLibrary) {
+        return null;
+    }
+
+    try {
+        var library = await request.put(env.config.url + env.config.endpoint + '/' + selectedLibrary)
+                                    .set('Content-Type', 'application/json')
+                                    .auth(env.config.username, env.config.password)
+                                    .send('{"ScriptLibrary" : {}}');        
+        return library;
+    } catch (error) {
+        throw error;
+    }
+}
+
+/**
+ * Show the available ScriptLibraries
+ * for the selected environment
+ * 
+ * @param {object} env 
+ * @param {array} foundLibraries 
+ */
 function chooseLibrary(env, foundLibraries) {
     vscode.window.showQuickPick(foundLibraries).then(
         library => loadLibrary(env, library)
     );
 }
 
+/**
+ * Get the ScriptLibrary from the selected environment
+ * and save it the the defined local path
+ * 
+ * @param {object} env 
+ * @param {string} library 
+ */
 function loadLibrary(env, library) {
     if (!library) {
         return null;
@@ -153,21 +223,58 @@ function loadLibrary(env, library) {
     );
 }
 
+/**
+ * Saves the selected ScriptLibrary
+ * 
+ * @param {object} env 
+ * @param {object} result 
+ */
 function saveFile(env, result) {
 
     let file = env.config.path + result['Name'] + '.js';
 
     fs.writeFile(file, result['Script'], (err) => {
-        // throws an error, you could also catch it here
+        //something went wrong while saving the file - show a error message
         if (err) {
             vscode.window.showErrorMessage('Unable to save ScriptLibrary ' + result['Name'] + " - " + err);
             throw err;
         }
-        // success case, the file was saved
+        // file was saved successfully - show a info message
         vscode.window.showInformationMessage('ScriptLibrary ' + result['Name'] + ' saved successfully.');
     });
 }
 
+
+function compileFile(env, library) {
+    compileScriptLibrary(env, library).then(
+        result => showCompileResult(result),
+        errorHandler
+    );
+}
+
+/**
+ * Show Message box with the compile result
+ * 
+ * @param {object} result 
+ */
+function showCompileResult(result) {
+
+    if( result.body ) {
+        if(result.body.Messages.length == 1) {
+            vscode.window.showInformationMessage(result.body.Messages.join(""));
+        } else {
+            vscode.window.showErrorMessage(result.body.Messages.join(""));
+        }
+    }
+    
+}
+
+/**
+ * Opens the saved file
+ * 
+ * @param {object} env 
+ * @param {string} library 
+ */
 async function openFile(env, library) {
 
     let file = vscode.Uri.file(env.config.path + library + '.js');
@@ -177,6 +284,11 @@ async function openFile(env, library) {
     });
 }
 
+/**
+ * Generic Error Handler
+ * 
+ * @param {object} error 
+ */
 function errorHandler(error) {
     
     if( !error.response  ) {
