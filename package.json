@@ -23,13 +23,36 @@
     ],
     "main": "./extension",
     "contributes": {
-        "configuration": [
-            {
-                "title": "Service Manager",
-                "properties": {
+        "configuration": {
+            "type": "object",
+            "title": "Service Manager Extension configuration",
+            "properties": {
+                "servicemanager": {
+                    "type": "object",
+                    "default": {
+                        "environments" : {
+                            "env1": {
+                                "name": "Environment 1",
+                                "url": "http://localhost:13080/SM/9/rest/",
+                                "endpoint": "ScriptLibrary",
+                                "username": "System.Admin",
+                                "password": "System.Admin",
+                                "path": "/Users/marcusreinhardt/Documents/sm/env1/"
+                            },
+                            "env2": {
+                                "name": "Environment 2",
+                                "url": "http://localhost:13080/SM/9/rest/",
+                                "endpoint": "ScriptLibrary",
+                                "username": "System.Admin",
+                                "password": "System.Admin",
+                                "path": "~/Documents/sm/env2/"
+                            }
+                        }
+                    },
+                    "description": "Defines the available service manager environments"
                 }
             }
-        ],
+        },
         "commands": [
             {
                 "command": "extension.servicemanager.getLibraries",

@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const fs = require('fs');
+const path = require('path');
 const vscode = require('vscode');
 const request = require('superagent');
 
@@ -10,26 +11,62 @@ function activate(context) {
     let getLibraries = vscode.commands.registerCommand('extension.servicemanager.getLibraries', function () {
         vscode.window
             .showQuickPick(availableEnvironments)
-            .then(
-                env => getScriptLibraries(env)
-                    .then(
-                        foundLibraries => chooseLibrary(env, foundLibraries), 
-                        errorHandler
-                ), 
-                errorHandler
-            );
+                .then(
+                    env => getScriptLibraries(env)
+                        .then(
+                            foundLibraries => chooseLibrary(env, foundLibraries), 
+                            errorHandler
+                    ), 
+                    errorHandler
+                );
     });
 
     let pullLibrary = vscode.commands.registerCommand('extension.servicemanager.pullLibrary', function () {
-        console.log("pull");
+        var editor = vscode.window.activeTextEditor;
+        var currentFile = path.basename(editor.document.fileName, '.js');
+        
+        if (!editor.document.isUntitled ) {
+            vscode.window
+                .showQuickPick(availableEnvironments)
+                    .then(
+                        env => loadLibrary(env, currentFile),
+                        errorHandler
+                    );
+        } else {
+            vscode.window.showWarningMessage('You can\'t pull a unsafed file!');
+        }
     });
 
     let pushLibrary = vscode.commands.registerCommand('extension.servicemanager.pushLibrary', function () {
-        console.log("push");
+        var editor = vscode.window.activeTextEditor;
+        var currentFile = path.basename(editor.document.fileName, '.js');
+
+        if (!editor.document.isUntitled) {
+            vscode.window
+                .showQuickPick(availableEnvironments)
+                .then(
+                    env => loadLibrary(env, currentFile),
+                    errorHandler
+                );
+        } else {
+            vscode.window.showWarningMessage('You can\'t push a unsafed file!');
+        }
     });
 
     let compileLibrary = vscode.commands.registerCommand('extension.servicemanager.compileLibrary', function () {
-        console.log("compile");
+        var editor = vscode.window.activeTextEditor;
+        var currentFile = path.basename(editor.document.fileName, '.js');
+
+        if (!editor.document.isUntitled) {
+            vscode.window
+                .showQuickPick(availableEnvironments)
+                .then(
+                    env => loadLibrary(env, currentFile),
+                    errorHandler
+                );
+        } else {
+            vscode.window.showWarningMessage('You can\'t compile a unsafed file!');
+        }
     });
 
     //add commands
@@ -60,27 +97,9 @@ function getEnvironments() {
     return items;
 }
 
-function getConfig(env) {
-    let config = {
-        "env1" : {
-            "name" : "Environment 1",
-            "url": "http://localhost:13080/SM/9/rest/",
-            "endpoint": "ScriptLibrary",
-            "username": "System.Admin",
-            "password": "System.Admin",
-            "path": "/Users/marcusreinhardt/Documents/sm/env1/"
-        },
-        "env2": {
-            "name": "Environment 2",
-            "url": "http://localhost:13080/SM/9/rest/",
-            "endpoint": "ScriptLibrary",
-            "username": "System.Admin",
-            "password": "System.Admin",
-            "path": "~/Documents/sm/env2/"
-        }
-    };
-
-    return (env) ? config[env] : config;
+function getConfig(env) { 
+    let config = vscode.workspace.getConfiguration('servicemanager');
+    return (env) ? config['environments'][env] : config['environments'];
 }
 
 async function getScriptLibraries(env) {
