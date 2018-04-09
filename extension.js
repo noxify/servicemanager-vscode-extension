@@ -45,12 +45,12 @@ function activate(context) {
     let pushLibrary = vscode.commands.registerCommand('extension.servicemanager.pushLibrary', function () {
         var editor = vscode.window.activeTextEditor;
         var currentFile = path.basename(editor.document.fileName, '.js');
-
+        
         if (!editor.document.isUntitled) {
             vscode.window
                 .showQuickPick(availableEnvironments)
                 .then(
-                    env => loadLibrary(env, currentFile),
+                    env => pushFile(env, currentFile),
                     errorHandler
                 );
         } else {
@@ -121,77 +121,6 @@ function getConfig(env) {
 }
 
 /**
- * Gets all available ScriptLibraries from the
- * selected envrionment
- * 
- * @param {object} env 
- * @returns {Promise}
- */
-async function getScriptLibraries(env) {
-    
-    if(!env) {
-        return null;
-    }
-
-    try {
-        var libraries = await request.get(env.config.url + env.config.endpoint).auth(env.config.username, env.config.password);
-        
-        var foundLibraries = _.map(libraries.body.content, function(library) {
-            return library[env.config.endpoint]['Name'];
-        });
-
-        return foundLibraries;
-    } catch (error) {
-        throw error;
-    }
-}
-
-/**
- * Get the ScriptLibrary from the selected environment
- * 
- * @param {object} env 
- * @param {string} selectedLibrary 
- * @returns {Promise}
- */
-async function getScriptLibrary(env, selectedLibrary) {
-
-    if( !env || !selectedLibrary) {
-        return null;
-    }
-
-    try {
-        var library = await request.get(env.config.url + env.config.endpoint + '/' + selectedLibrary).auth(env.config.username, env.config.password);
-        return library.body[env.config.endpoint];
-    } catch (error) {
-        throw error;
-    }
-}
-
-/**
- * Compile the ScriptLibrary in the selected environment
- * 
- * @param {object} env 
- * @param {string} selectedLibrary 
- * @returns {Promise}
- */
-async function compileScriptLibrary(env, selectedLibrary) {
-
-    if (!env || !selectedLibrary) {
-        return null;
-    }
-
-    try {
-        var library = await request.put(env.config.url + env.config.endpoint + '/' + selectedLibrary)
-                                    .set('Content-Type', 'application/json')
-                                    .auth(env.config.username, env.config.password)
-                                    .send('{"ScriptLibrary" : {}}');        
-        return library;
-    } catch (error) {
-        throw error;
-    }
-}
-
-/**
  * Show the available ScriptLibraries
  * for the selected environment
  * 
@@ -244,7 +173,12 @@ function saveFile(env, result) {
     });
 }
 
-
+/**
+ * Compiles the remote ScriptLibrary
+ * 
+ * @param {object} env 
+ * @param {string} library 
+ */
 function compileFile(env, library) {
     compileScriptLibrary(env, library).then(
         result => showCompileResult(result),
@@ -252,6 +186,12 @@ function compileFile(env, library) {
     );
 }
 
+function pushFile(env, library) {
+    pushScriptLibrary(env, library).then(
+        result => showPushResult(result),
+        errorHandler
+    );
+}
 /**
  * Show Message box with the compile result
  * 
@@ -265,8 +205,19 @@ function showCompileResult(result) {
         } else {
             vscode.window.showErrorMessage(result.body.Messages.join(""));
         }
-    }
+    }   
+}
+
+function showPushResult(result) {
+    console.log(result);
     
+    if (result.body) {
+        if (result.body.Messages.length == 1) {
+            vscode.window.showInformationMessage(result.body.Messages.join(""));
+        } else {
+            vscode.window.showErrorMessage(result.body.Messages.join(""));
+        }
+    }
 }
 
 /**
@@ -285,6 +236,137 @@ async function openFile(env, library) {
 }
 
 /**
+ * Gets all available ScriptLibraries from the
+ * selected envrionment
+ * 
+ * @param {object} env 
+ * @returns {Promise}
+ */
+async function getScriptLibraries(env) {
+
+    if (!env) {
+        return null;
+    }
+
+    try {
+        var libraries = await request.get(env.config.url + env.config.resourceCollection).auth(env.config.username, env.config.password);
+
+        var foundLibraries = _.map(libraries.body.content, function (library) {
+            return library[env.config.resourceName][env.config.fields.name];
+        });
+
+        return foundLibraries;
+    } catch (error) {
+        throw error;
+    }
+}
+
+/**
+ * Get the ScriptLibrary from the selected environment
+ * 
+ * @param {object} env 
+ * @param {string} selectedLibrary 
+ * @returns {Promise}
+ */
+async function getScriptLibrary(env, selectedLibrary) {
+
+    if (!env || !selectedLibrary) {
+        return null;
+    }
+
+    try {
+        var library = await request.get(env.config.url + env.config.resourceCollection + '/' + selectedLibrary).auth(env.config.username, env.config.password);
+        return library.body[env.config.resourceName];
+    } catch (error) {
+        throw error;
+    }
+}
+
+/**
+ * Compile the ScriptLibrary in the selected environment
+ * 
+ * @param {object} env 
+ * @param {string} selectedLibrary 
+ * @returns {Promise}
+ */
+async function compileScriptLibrary(env, selectedLibrary) {
+
+    if (!env || !selectedLibrary) {
+        return null;
+    }
+
+    try {
+        var requestBody = {};
+        requestBody[env.config.resourceName] = {};
+
+        var library = await request.put(env.config.url + env.config.resourceCollection + '/' + selectedLibrary)
+            .set('Content-Type', 'application/json')
+            .auth(env.config.username, env.config.password)
+            .send(JSON.stringify(requestBody));
+        return library;
+    } catch (error) {
+        throw error;
+    }
+}
+
+/**
+ * Push the ScriptLibrary in the selected environment
+ * 
+ * @param {object} env 
+ * @param {string} selectedLibrary 
+ * @returns {Promise}
+ */
+async function pushScriptLibrary(env, selectedLibrary) {
+
+    var libraryExists = false;
+
+    try {
+        var library = await request.get(env.config.url + env.config.resourceCollection + '/' + selectedLibrary)
+            .set('Content-Type', 'application/json')
+            .auth(env.config.username, env.config.password);
+
+        libraryExists = true;
+
+    } catch( e ) {
+
+    }
+
+    var createUpdate = createUpdateLibrary(env, selectedLibrary, libraryExists).then(
+        res => showPushResult(res)
+    );
+}
+
+async function createUpdateLibrary(env, selectedLibrary, libraryExists) {
+    
+    var requestUrl = "";
+    if( libraryExists ) {
+        requestUrl = env.config.url + env.config.resourceCollection + '/' + selectedLibrary;
+    } else {
+        requestUrl = env.config.url + env.config.resourceCollection;
+    }
+
+    try {
+        var requestBody = {};
+        requestBody[env.config.resourceName] = {};
+        requestBody[env.config.resourceName][env.config.fields.name] = selectedLibrary;
+        if( !libraryExists ) {
+            requestBody[env.config.resourceName][env.config.fields.package] = env.config.defaultPackage;
+        }        
+
+        requestBody[env.config.resourceName][env.config.fields.script] = fs.readFileSync(vscode.window.activeTextEditor.document.fileName, 'utf8');
+
+        var library = await request.post(requestUrl)
+            .set('Content-Type', 'application/json')
+            .auth(env.config.username, env.config.password)
+            .send(JSON.stringify(requestBody));
+        
+        return library;
+    } catch (error) {
+        throw error;
+    }
+}
+
+/**
  * Generic Error Handler
  * 
  * @param {object} error 
@@ -292,7 +374,6 @@ async function openFile(env, library) {
 function errorHandler(error) {
     
     if( !error.response  ) {
-        console.error(error);
         vscode.window.showErrorMessage('An unexpected error occurs. Please check the console for more information.');
     } else {
         vscode.window.showErrorMessage(error.status + " - "+error.response.body.Messages[0]);

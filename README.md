@@ -1,6 +1,6 @@
 # service-manager-vscode README
 
-This is the README for your extension "service-manager-vscode". After writing up a brief description, we recommend including the following sections.
+This is the README for your extension "servicemanager-vscode". After writing up a brief description, we recommend including the following sections.
 
 ## Features
 
