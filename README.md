@@ -1,31 +1,109 @@
-# service-manager-vscode README
+# Service Manager Visual Studio Code Extension
 
-This is the README for your extension "servicemanager-vscode". After writing up a brief description, we recommend including the following sections.
+A VSCode extenstion which allows you to create and modify Service Manager ScriptLibraries outside the Service Manager Client.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+* Multiple Environments
+* Create a new ScriptLibrary from a local file
+* Push and Pull for ScriptLibraries
+* Compile
 
-For example if there is an image subfolder under your extension project workspace:
+## Installation
 
-\!\[feature X\]\(images/feature-x.png\)
+Just load the extension via the VSCode Marketplace.
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+Inside the Service Manager, you have to create a new `extaccess` record.
 
-## Requirements
+Please ensure that the used operator has enough permissions to create/update/compile a ScriptLibrary and that the capability `RESTful API` is set in the operator.
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+### Header fields
+
+| Field Name   | Value         |
+| ------------ | ------------- |
+| Service Name | ScriptLibrary |
+| Name         | ScriptLibrary |
+| Object Name  | ScriptLibrary |
+
+### Tab Allowed Actions
+
+| Allowed Actions | Action Names | Action Type |
+| --------------- | ------------ | ----------- |
+| add             | Create       | Create only |
+| save            | Update       | Update only |
+| compile         | Compile      | <empty>     |
+
+### Tab Fields
+
+| Field   | Caption | Type    |
+| ------- | ------- | ------- |
+| name    | Name    | <empty> |
+| package | Package | <empty> |
+| script  | Script  | <empty> |
+
+```
+If you're using different Caption Names, you have to modify also the extension settings. See `fields` inside the example settings.
+```
+
+### Tab RESTful
+
+| Field                             | Value         |
+| --------------------------------- | ------------- |
+| RESTful enabled                   | true          |
+| Resource Collection Name          | ScriptLibrary |
+| Resource Name                     | ScriptLibrary |
+| Unique Keys                       | name          |
+| Resource Collection Action - POST | Create        |
+| Resource Actions - POST           | Update        |
+| Resource Actions - PUT            | Compile       |
+
+If you're using a different Resource Collection Name and/or Resource Name, you have to modify also the extension settings. See `resourceCollection` and `resourceName` inside the example settings.
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
 This extension contributes the following settings:
 
-* `myExtension.enable`: enable/disable this extension
-* `myExtension.thing`: set to `blah` to do something
+* `servicemanager.environments` - Object - Defines the available environments
+
+
+### Example
+
+```
+"servicemanager" : {
+    "environments" : {
+        "env1": {
+            "name": "Environment 1",
+            "url": "http://localhost:13080/SM/9/rest/",
+            "resourceCollection": "ScriptLibrary",
+            "resourceName": "ScriptLibrary",
+            "username": "System.Admin",
+            "password": "System.Admin",
+            "path": "/Users/marcusreinhardt/Documents/sm/env1/",
+            "defaultPackage" : "User",
+            "fields" : {
+                "name" : "Name",
+                "package" : "Package",
+                "script" : "Script"
+            }
+        },
+        "env2": {
+            "name": "Environment 2",
+            "url": "http://localhost:23080/SM/9/rest/",
+            "resourceCollection": "ScriptLibrary",
+            "resourceName": "ScriptLibrary",
+            "username": "System.Admin",
+            "password": "System.Admin",
+            "path": "/Users/marcusreinhardt/Documents/sm/env2/",
+            "defaultPackage": "User",
+            "fields": {
+                "name": "Name",
+                "package": "Package",
+                "script": "Script"
+            }
+        }
+    }
+}
+```
 
 ## Known Issues
 
@@ -33,33 +111,12 @@ Calling out known issues can help limit users opening duplicate issues against y
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
-
 ### 1.0.0
 
-Initial release of ...
+Initial release
 
-### 1.0.1
+## Credits
 
-Fixed issue #.
+Special thanks goes to:
 
-### 1.1.0
-
-Added features X, Y, and Z.
-
------------------------------------------------------------------------------------------------------------
-
-## Working with Markdown
-
-**Note:** You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+CMD+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux) or `Cmd+Space` (macOS) to see a list of Markdown snippets
-
-### For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+* [yim OHG](https://www.y-im.de) - My old company :heart: They got me the idea to give VSCode a try and here it is - the SM Extension :)

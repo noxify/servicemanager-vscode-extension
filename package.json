@@ -30,7 +30,6 @@
                 "servicemanager": {
                     "type": "object",
                     "default": {
-                        "timeout" : 10000,
                         "environments" : {
                             "env1": {
                                 "name": "Environment 1",
