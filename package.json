@@ -1,9 +1,9 @@
 {
-    "name": "servicemanager-vscode",
+    "name": "servicemanager-vscode-extension",
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "https://github.com/noxify/service-manager-vscode"
+        "url": "https://github.com/noxify/servicemanager-vscode-extension"
     },
     "displayName": "Service Manager VSCode",
     "description": "Push/Pull/Compile Service Manager ScriptLibraries from your editor",
