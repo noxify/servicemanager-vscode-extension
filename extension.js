@@ -209,7 +209,6 @@ function showCompileResult(result) {
 }
 
 function showPushResult(result) {
-    console.log(result);
     
     if (result.body) {
         if (result.body.Messages.length == 1) {
@@ -321,19 +320,23 @@ async function pushScriptLibrary(env, selectedLibrary) {
     var libraryExists = false;
 
     try {
-        var library = await request.get(env.config.url + env.config.resourceCollection + '/' + selectedLibrary)
+        await request.get(env.config.url + env.config.resourceCollection + '/' + selectedLibrary)
             .set('Content-Type', 'application/json')
-            .auth(env.config.username, env.config.password);
+            .auth(env.config.username, env.config.password)
+            .timeout({
+                response: 5000  // Wait 5 seconds for the server to start sending,
+            });
 
         libraryExists = true;
-
     } catch( e ) {
-
+        if (e.response ) {
+            libraryExists = false;
+        } else {
+            throw e;
+        }
     }
 
-    var createUpdate = createUpdateLibrary(env, selectedLibrary, libraryExists).then(
-        res => showPushResult(res)
-    );
+    return createUpdateLibrary(env, selectedLibrary, libraryExists);
 }
 
 async function createUpdateLibrary(env, selectedLibrary, libraryExists) {
@@ -372,11 +375,12 @@ async function createUpdateLibrary(env, selectedLibrary, libraryExists) {
  * @param {object} error 
  */
 function errorHandler(error) {
-    
+
     if( !error.response  ) {
-        vscode.window.showErrorMessage('An unexpected error occurs. Please check the console for more information.');
+        console.error(error);
+        vscode.window.showErrorMessage('An unexpected error occurs. Please check the console for more information. '+ error);
     } else {
-        vscode.window.showErrorMessage(error.status + " - "+error.response.body.Messages[0]);
+        vscode.window.showErrorMessage(error.status + " - "+error.response.body.Messages.join(""));
     }
 }
 
