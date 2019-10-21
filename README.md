@@ -8,6 +8,8 @@ A VSCode extenstion which allows you to create and modify Service Manager Script
 * Create a new ScriptLibrary from a local file
 * Push and Pull for ScriptLibraries
 * Compile
+* Compare
+* Execute/Run Code 
 
 ## Installation
 
@@ -32,6 +34,9 @@ Please ensure that the used operator has enough permissions to create/update/com
 | add             | Create       | Create only |
 | save            | Update       | Update only |
 | compile         | Compile      | <empty>     |
+| executelibrary         | executelibrary      | <empty>     |
+
+> It's important to use the action name `executelibrary`, otherwise, the Execute Command will not work in Visual Studio Code.
 
 ### Tab Fields
 
@@ -58,6 +63,29 @@ If you're using different Caption Names, you have to modify also the extension s
 | Resource Actions - PUT            | Compile       |
 
 If you're using a different Resource Collection Name and/or Resource Name, you have to modify also the extension settings. See `resourceCollection` and `resourceName` inside the example settings.
+
+## Enable the Execute command
+
+To run a `ScriptLibrary` from your Visual Studio Code, you have to create a new `Process`.
+
+### State Changes
+You have to add a new method/process entry in State `ScriptLibrary.view`.
+
+* Display Action: executelibrary
+* Process Name: ScriptLibrary.execute
+* Condition: `true`
+
+### New Process
+
+Create a new Process with the name `ScriptLibrary.execute`.
+In the tab `Initial Expressions` add the following code and save the record.
+
+```
+$L.void=jscall(1 in $L.file)
+```
+
+> This is the same code as in the display option for the execute button.
+
 
 ## Extension Settings
 
@@ -110,6 +138,12 @@ This extension contributes the following settings:
 Calling out known issues can help limit users opening duplicate issues against your extension.
 
 ## Release Notes
+
+### 2.0.0
+
+* Refactored the Extension
+* Enabled Compare functionality
+* Enabled Execute functionality
 
 ### 1.0.0
 
