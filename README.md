@@ -1,3 +1,5 @@
+> Currently unmaintained since I have moved from Microfocus Service Manager to ServiceNow - Sorry guys!
+
 # Service Manager Visual Studio Code Extension
 
 A VSCode extenstion which allows you to create and modify Service Manager ScriptLibraries outside the Service Manager Client.
