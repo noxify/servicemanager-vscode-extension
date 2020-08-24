@@ -214,6 +214,7 @@
         "@types/mocha": "^5.2.7",
         "@types/lodash": "4.14.144",
         "supports-color": "7.1.0",
-        "lodash": "4.17.19"
+        "lodash": "4.17.19",
+        "minimist": ">=0.2.1"
     }
 }
